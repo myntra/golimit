@@ -1,0 +1,95 @@
+hash: a39234d9839b2802a6d7cd5a2492664ffc0bc536e1631ca5308fbea0d79e663d
+updated: 2018-01-18T17:03:11.1427253+05:30
+imports:
+- name: github.com/apache/thrift
+  version: b2a4d4ae21c789b689dd162deb819665567f481c
+  subpackages:
+  - lib/go/thrift
+- name: github.com/benbjohnson/clock
+  version: 7dc76406b6d3c05b5f71a86293cbcf3c4ea03b19
+- name: github.com/cactus/go-statsd-client
+  version: 91c326c3f7bd20f0226d3d1c289dd9f8ce28d33d
+  subpackages:
+  - statsd
+- name: github.com/dgryski/go-farm
+  version: 2de33835d10275975374b37b2dcfd22c9020a1f5
+- name: github.com/opentracing/opentracing-go
+  version: 1949ddbfd147afd4d964a9f00b24eb291e0e7c38
+  subpackages:
+  - ext
+  - log
+- name: github.com/pressly/chi
+  version: e83ac2304db3c50cf03d96a2fcd39009d458bc35
+- name: github.com/rcrowley/go-metrics
+  version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
+- name: github.com/sirupsen/logrus
+  version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
+- name: github.com/spaolacci/murmur3
+  version: 9f5d223c60793748f04a9d5b4b4eacddfc1f755d
+- name: github.com/uber-common/bark
+  version: 02d883c81a4e7b76904d97efb176efdf4be791bd
+- name: github.com/uber-go/atomic
+  version: 8474b86a5a6f79c443ce4b2992817ff32cf208b8
+  subpackages:
+  - utils
+- name: github.com/uber/ringpop-go
+  version: 08d399785ee54fdae8e4bd8b7b481673f52739cc
+  subpackages:
+  - discovery
+  - discovery/statichosts
+  - events
+  - forward
+  - hashring
+  - logging
+  - membership
+  - shared
+  - swim
+  - util
+- name: github.com/uber/tchannel-go
+  version: 7bcb33f4bb908c21374f8bfdc9d4b1ebcbb8dab0
+  subpackages:
+  - internal/argreader
+  - json
+  - raw
+  - relay
+  - thrift
+  - thrift/gen-go/meta
+  - tnet
+  - tos
+  - trand
+  - typed
+- name: golang.org/x/crypto
+  version: 13931e22f9e72ea58bb73048bc752b48c6d4d4ac
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/net
+  version: 5602c733f70afc6dcec6766be0d5034d4c4f14de
+  subpackages:
+  - bpf
+  - context
+  - internal/iana
+  - internal/netreflect
+  - ipv4
+  - ipv6
+- name: golang.org/x/sys
+  version: 2c42eef0765b9837fbdab12011af7830f55f88f0
+  subpackages:
+  - unix
+  - windows
+- name: gopkg.in/alexcesaro/statsd.v2
+  version: 7fea3f0d2fab1ad973e641e51dba45443a311a90
+- name: gopkg.in/yaml.v2
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+  subpackages:
+  - assert

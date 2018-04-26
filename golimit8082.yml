@@ -1,0 +1,15 @@
+
+hostname: 127.0.0.1
+clustername:  IDEA
+tchannelport: 2347
+seed: "YOGESHs-MacBook-Pro.local:2345"
+preprocessworkers:  1000
+preprocessbuffer: 100000
+buckets:  1000
+unsyncedctrlimit: 5
+httpenabled: true
+httpport: 8082
+statsdsamplerate: 1
+unsyncedtimelimit: 60000
+
+

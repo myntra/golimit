@@ -1,0 +1,30 @@
+package: golimitV3
+import:
+- package: github.com/apache/thrift
+  version: 0.10.0
+  subpackages:
+  - lib/go/thrift
+- package: github.com/pressly/chi
+  version: v3.3.2
+- package: github.com/spaolacci/murmur3
+  version: v1.1
+- package: github.com/uber/ringpop-go
+  version: v0.8.5
+  subpackages:
+  - discovery/statichosts
+  - forward
+  - swim
+- package: github.com/uber/tchannel-go
+  version: v1.8.1
+  subpackages:
+  - thrift
+- package: gopkg.in/yaml.v2
+- package: gopkg.in/alexcesaro/statsd.v2
+  version: v2.0.0
+- package: github.com/sirupsen/logrus
+  version: v1.0.4
+testImport:
+- package: github.com/stretchr/testify
+  version: v1.2.0
+  subpackages:
+  - assert

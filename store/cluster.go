@@ -8,7 +8,7 @@ import (
 	"github.com/uber/tchannel-go"
 	"github.com/uber/ringpop-go/swim"
 	"github.com/uber/ringpop-go/discovery/statichosts"
-	"bitbucket.org/myntra/golimitv3/gen-go/com"
+	"github.com/myntra/golimit/gen-go/com"
 	"github.com/uber/ringpop-go/events"
 	"time"
 	"math/rand"

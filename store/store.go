@@ -2,13 +2,13 @@ package store
 
 import (
 	"github.com/spaolacci/murmur3"
-	"bitbucket.org/myntra/golimitv3/store/bucket"
+	"github.com/myntra/golimit/store/bucket"
 	"sync"
-	"bitbucket.org/myntra/golimitv3/store/event"
+	"github.com/myntra/golimit/store/event"
 	"time"
 	"github.com/uber/tchannel-go"
 	"github.com/uber/ringpop-go"
-	"bitbucket.org/myntra/golimitv3/gen-go/com"
+	"github.com/myntra/golimit/gen-go/com"
 	"gopkg.in/alexcesaro/statsd.v2"
 	log "github.com/sirupsen/logrus"
 	"math"

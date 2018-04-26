@@ -3,7 +3,7 @@ package http
 import (
 	"github.com/pressly/chi"
 	"net/http"
-	"bitbucket.org/myntra/golimitv3/store"
+	"github.com/myntra/golimit/store"
 	"strconv"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"

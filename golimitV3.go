@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/myntra/golimitv3/store"
+	"github.com/myntra/golimit/store"
 	"gopkg.in/yaml.v2"
 	"flag"
 	"io/ioutil"
@@ -11,7 +11,7 @@ import (
 	"time"
 	"os/signal"
 	"syscall"
-	"bitbucket.org/myntra/golimitv3/store/http"
+	"github.com/myntra/golimit/store/http"
 	log "github.com/sirupsen/logrus"
 )
 

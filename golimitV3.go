@@ -1,28 +1,25 @@
 package main
 
 import (
-	"github.com/myntra/golimit/store"
-	"gopkg.in/yaml.v2"
 	"flag"
-	"io/ioutil"
-	"os"
-	"strings"
 	"fmt"
-	"time"
-	"os/signal"
-	"syscall"
+	"github.com/myntra/golimit/store"
 	"github.com/myntra/golimit/store/http"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
 )
 
-
-
-func main()  {
-
+func main() {
 
 	configfileName := "golimit8080.yml"
 	flag.StringVar(&configfileName, "config", configfileName, "Configuration File")
-	loglevel:= "info"
+	loglevel := "info"
 	flag.StringVar(&loglevel, "loglevel", loglevel, "Log Level")
 	flag.Parse()
 
@@ -37,14 +34,12 @@ func main()  {
 	default:
 		log.SetLevel(log.InfoLevel)
 	}
-	log.Infof("Log Level %+v",log.GetLevel())
+	log.Infof("Log Level %+v", log.GetLevel())
 	customFormatter := new(log.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05:000"
 	customFormatter.FullTimestamp = true
 	log.SetFormatter(customFormatter)
 	log.Info("Starting Go limiter")
-
-
 
 	configObj := store.NewDefaultStoreConfig()
 	{
@@ -54,26 +49,23 @@ func main()  {
 			return
 		}
 		err = yaml.Unmarshal(bytes, &configObj)
-		if (err != nil) {
+		if err != nil {
 			panic(err)
 		}
 	}
-	if(strings.TrimSpace(configObj.HostName)==""){
-		hostname,err:=os.Hostname()
-		if(err!=nil){
-			log.Errorf("Not able to resolve hostname %+v",err)
+	if strings.TrimSpace(configObj.HostName) == "" {
+		hostname, err := os.Hostname()
+		if err != nil {
+			log.Errorf("Not able to resolve hostname %+v", err)
 			panic(err)
 		}
-		configObj.HostName=hostname
+		configObj.HostName = hostname
 	}
-	log.Infof("StoreConfig: %+v",configObj)
+	log.Infof("StoreConfig: %+v", configObj)
 
-	store:=store.NewStore(configObj)
+	store := store.NewStore(configObj)
 
-	http.NewGoHttpServer(configObj.HttpPort,configObj.HostName,store)
-
-
-
+	http.NewGoHttpServer(configObj.HttpPort, configObj.HostName, store)
 
 	var gracefulStop = make(chan os.Signal)
 	signal.Notify(gracefulStop, syscall.SIGTERM)
@@ -82,10 +74,7 @@ func main()  {
 	fmt.Printf("caught sig: %+v ", sig)
 	store.Close()
 	fmt.Println("Wait for 2 second to finish processing")
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	os.Exit(0)
 
 }
-
-
-

@@ -35,7 +35,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 		e = b.lookup[key]
 		if e == nil {
 			log.Debugf("Incr: Double check entry not found %s", key)
-			e = NewEntry(0, genExpiry(t, window))
+			e = NewEntry(0, GenExpiry(t, window))
 			b.lookup[key] = e
 		}
 		b.Unlock()
@@ -43,7 +43,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 	e.Lock()
 	if e.Expired() {
 		log.Debugf("Incr: Found entry expired, reiniting %s", key)
-		e.ReInit(0, genExpiry(t, window))
+		e.ReInit(0, GenExpiry(t, window))
 	}
 
 	previousTotal := e.Count()
@@ -91,7 +91,7 @@ func (b *KeyBucket) Sync(key string, count int32, expiry int64) {
 ttl in seconds,
 return expiry in Nano
 */
-func genExpiry(curTime int64, ttl int32) int64 {
+func GenExpiry(curTime int64, ttl int32) int64 {
 	if ttl <= 0 {
 		return curTime
 	}

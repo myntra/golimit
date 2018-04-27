@@ -24,34 +24,51 @@ type ClusterInfo struct {
 
 func (s *Store) initRingPop() {
 
+	var err error
+	s.tchannel = s.opts.tchannel
+	s.nodeId = hostname + ":" + s.opts.tchannelport
+
 	log.Info("Cluster: Initializing RingPop")
-	ch, err := tchannel.NewChannel(s.config.ClusterName, nil)
-	if err != nil {
-		log.Error(err)
-		panic("Cluster: channel did not create successfully")
+	if s.tchannel == nil {
+		s.tchannel, err = tchannel.NewChannel(s.opts.clusterName, nil)
+		if err != nil {
+			log.Error(err)
+			panic("Cluster: channel did not create successfully")
+		}
+
+	} else {
+		if s.tchannel.ServiceName() != s.opts.clusterName {
+			panic("Invalid Config: Cluster name should match with provided TChannel Service Name")
+		}
 	}
-	s.tchannel = ch
-	rp, err := ringpop.New(s.config.ClusterName,
-		ringpop.Channel(ch),
-		ringpop.Address(s.config.HostName+":"+s.config.TChannelPort))
+	s.ringpop = s.opts.ringpop
 
-	if err != nil {
-		log.Fatalf("Cluster: Unable to create Ringpop: %v", err)
-	}
-	s.ringpop = rp
+	if s.ringpop == nil {
+		s.ringpop, err = ringpop.New(s.opts.clusterName,
+			ringpop.Channel(s.tchannel),
+			ringpop.Address(hostname+":"+s.opts.tchannelport))
+		if err != nil {
+			log.Fatalf("Cluster: Unable to create Ringpop: %v", err)
+		}
+		if err := s.tchannel.ListenAndServe(hostname + ":" + s.opts.tchannelport); err != nil {
+			log.Fatalf("Cluster: could not listen on given hostport: %v", err)
+		}
 
-	if err := ch.ListenAndServe(s.config.HostName + ":" + s.config.TChannelPort); err != nil {
-		log.Fatalf("Cluster: could not listen on given hostport: %v", err)
-	}
+		s.ringpop.AddListener(s)
 
-	s.ringpop.AddListener(s)
-	s.nodeId = s.config.HostName + ":" + s.config.TChannelPort
-	opts := new(swim.BootstrapOptions)
+		opts := new(swim.BootstrapOptions)
 
-	opts.DiscoverProvider = statichosts.New(strings.Split(s.config.Seed, ",")...)
+		opts.DiscoverProvider = statichosts.New(strings.Split(s.opts.seed, ",")...)
 
-	if _, err := s.ringpop.Bootstrap(opts); err != nil {
-		log.Fatalf("Cluster: ringpop bootstrap failed: %v", err)
+		if _, err := s.ringpop.Bootstrap(opts); err != nil {
+			log.Fatalf("Cluster: ringpop bootstrap failed: %v", err)
+		}
+
+	} else {
+		address, _ := s.ringpop.WhoAmI()
+		if address != hostname+":"+s.opts.tchannelport {
+			panic("Invalid Config: provided Ringpop Address should match with " + hostname + ":" + s.opts.tchannelport)
+		}
 	}
 	log.Info("Cluster: Initializing RingPop - Done")
 }
@@ -117,7 +134,7 @@ func (cs *Store) SendSyncToNode(node string, syncs []*com.SyncCommand) error {
 	}
 	forwardOptions := &forward.Options{}
 
-	res, err := cs.ringpop.Forward(node, []string{}, req, cs.config.ClusterName, "StoreNode::SyncKeys", tchannel.Thrift, forwardOptions)
+	res, err := cs.ringpop.Forward(node, []string{}, req, cs.opts.clusterName, "StoreNode::SyncKeys", tchannel.Thrift, forwardOptions)
 	if err == nil {
 		if err = ringpop.DeserializeThrift(res, &syncResult); err != nil {
 
@@ -152,7 +169,7 @@ func (cs *Store) SendSyncRateConfigToNode(node string, key string, rateConfig *R
 	}
 	forwardOptions := &forward.Options{}
 
-	res, err := cs.ringpop.Forward(node, []string{}, req, cs.config.ClusterName, "StoreNode::SyncRateConfig", tchannel.Thrift, forwardOptions)
+	res, err := cs.ringpop.Forward(node, []string{}, req, cs.opts.clusterName, "StoreNode::SyncRateConfig", tchannel.Thrift, forwardOptions)
 	if err == nil {
 		if err = ringpop.DeserializeThrift(res, &syncResult); err != nil {
 

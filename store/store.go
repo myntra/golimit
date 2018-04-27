@@ -12,38 +12,178 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 	"io/ioutil"
 	"math"
+	"math/rand"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 )
 
-type StoreConfig struct {
-	ClusterName       string  `yaml:clustername,json:"clustername"`
-	NodeId            string  `yaml:nodeid,json:"nodeid"`
-	HostName          string  `yaml:hostname,json:"hostname"`
-	TChannelPort      string  `yaml:tchannelport,json:"tchannelport"`
-	Seed              string  `yaml:seednodes,json:"seednodes"`
-	SyncBuffer        int     `yaml:syncbuffer,json:"syncbuffer"`
-	Buckets           int     `yaml:buckets,json:"buckets"`
-	StatsDEnabled     bool    `yaml:statsdenabled,json:"statsdenabled"`
-	HttpPort          int     `yaml:httpport,json:"httpport"`
-	UnsyncedCtrLimit  int32   `yaml:unsyncedctrlimit,json:"unsyncedctrlimit"`
-	UnsyncedTimeLimit int     `yaml:unsyncedtimelimit,json:"unsyncedtimelimit"`
-	StatsDHostPort    string  `yaml:statsdhostport,json:"statsdhostport"`
-	StatsDSampleRate  float32 `yaml:statsdsamplerate,json:"statsdsamplerate"`
-	StatsDBucket      string  `yaml:statsdbucket,json:"statsdbucket"`
-	GcInterval        int     `yaml:gcinterval,json:"gcinterval"`
-	ApiSecret         string  `yaml:apisecret,json:"apisecret"`
-	GcGrace           int     `yaml:gcgrace,json:"gcgrace"`
+var hostname string
+
+func init() {
+	hostname, _ = os.Hostname()
 }
 
-func NewDefaultStoreConfig() StoreConfig {
-	hostname := "UNKNOWN"
-	hostname, _ = os.Hostname()
-	storeCfg := StoreConfig{NodeId: hostname, Buckets: 1000, ClusterName: "golimittest", HostName: hostname, SyncBuffer: 100000,
-		TChannelPort: "2345", Seed: "127.0.0.1:2345", HttpPort: 5000, UnsyncedCtrLimit: 10, UnsyncedTimeLimit: 30000, ApiSecret: "test",
-		StatsDSampleRate: 0.01, GcInterval: 1800000, GcGrace: 1800000, StatsDEnabled: true, StatsDBucket: "golimittest", StatsDHostPort: "127.0.0.1:8125"}
-	return storeCfg
+type options struct {
+	clusterName       string
+	nodeId            string
+	tchannelport      string
+	seed              string
+	syncBuffer        int
+	buckets           int
+	statsDEnabled     bool
+	httpPort          string
+	unsyncedCtrLimit  int32
+	unsyncedTimeLimit int
+	statsDHostPort    string
+	statsDSampleRate  float32
+	statsDBucket      string
+	gcInterval        int
+	apiSecret         string
+	gcGrace           int
+	tchannel          *tchannel.Channel
+	ringpop           *ringpop.Ringpop
+}
+
+var defaultOptions = options{
+	clusterName:       "golimit",
+	nodeId:            "golimit" + strconv.Itoa(rand.Int()),
+	tchannelport:      "2479",
+	seed:              hostname + ":2479",
+	syncBuffer:        100000,
+	buckets:           1000,
+	statsDEnabled:     false,
+	statsDHostPort:    "",
+	statsDSampleRate:  .0001,
+	httpPort:          "7289",
+	unsyncedCtrLimit:  10,
+	unsyncedTimeLimit: 30000,
+	apiSecret:         "pingpong",
+	statsDBucket:      "golimit",
+	gcInterval:        1800000,
+	gcGrace:           1800000,
+	tchannel:          nil,
+	ringpop:           nil,
+}
+
+type Option func(*options)
+
+func WithRingpop(ringpop *ringpop.Ringpop) Option {
+	return func(o *options) {
+		o.ringpop = ringpop
+	}
+}
+
+func WithTChannel(tchannel *tchannel.Channel) Option {
+	return func(o *options) {
+		o.tchannel = tchannel
+	}
+}
+
+func WithApiSecret(secret string) Option {
+	return func(o *options) {
+		o.apiSecret = secret
+	}
+}
+
+func WithGcGrace(gcgrace int) Option {
+	return func(o *options) {
+		o.gcGrace = gcgrace
+	}
+}
+
+func WithGcInterval(gcinterval int) Option {
+	return func(o *options) {
+		o.gcInterval = gcinterval
+	}
+}
+
+func WithStatsDBucket(bucket string) Option {
+	return func(o *options) {
+		o.statsDBucket = bucket
+	}
+}
+
+func WithStatsDSampleRate(rate float32) Option {
+	return func(o *options) {
+		o.statsDSampleRate = rate
+	}
+}
+
+func WithStatsDHostPort(hostport string) Option {
+	return func(o *options) {
+		o.statsDHostPort = hostport
+	}
+}
+
+func WithUnsyncedTimeLimit(limit int) Option {
+	return func(o *options) {
+		o.unsyncedTimeLimit = limit
+	}
+}
+
+func WithUnsyncedCtrLimit(limit int32) Option {
+	return func(o *options) {
+		o.unsyncedCtrLimit = limit
+	}
+}
+
+func WithHttpPort(port string) Option {
+	return func(o *options) {
+		o.httpPort = port
+	}
+}
+
+func WithStatDEnabled(enable bool) Option {
+	return func(o *options) {
+		o.statsDEnabled = enable
+	}
+}
+
+func WithBucketSize(buckets int) Option {
+	return func(o *options) {
+		o.buckets = buckets
+	}
+}
+
+func WithSyncBuffer(bufferSize int) Option {
+	return func(o *options) {
+		o.syncBuffer = bufferSize
+	}
+}
+
+func WithSeed(seeds string) Option {
+	return func(o *options) {
+		o.seed = seeds
+	}
+}
+
+func WithTChannelPort(port string) Option {
+	return func(o *options) {
+		o.tchannelport = port
+		o.nodeId = hostname + ":" + o.tchannelport
+	}
+}
+
+func WithHostName(hostName string) Option {
+	return func(o *options) {
+		hostname = hostName
+		o.nodeId = hostname + ":" + o.tchannelport
+	}
+}
+
+func WithClusterName(name string) Option {
+	return func(o *options) {
+		o.clusterName = name
+		o.nodeId = hostname + ":" + o.tchannelport
+	}
+}
+
+func WithNodeId(nodeId string) Option {
+	return func(o *options) {
+		o.nodeId = nodeId
+	}
 }
 
 type RateConfig struct {
@@ -54,7 +194,7 @@ type RateConfig struct {
 
 type Store struct {
 	sync.RWMutex
-	config      *StoreConfig
+	opts        options
 	keyBucket   []*bucket.KeyBucket
 	rateConfig  map[string]*RateConfig
 	bucketMask  uint32
@@ -66,15 +206,22 @@ type Store struct {
 	statsd      *statsd.Client
 }
 
-func NewStore(config StoreConfig) *Store {
-	log.Infof("Store: Config %+v", config)
-	store := &Store{nodeId: config.NodeId,
-		config:     &config,
-		keyBucket:  make([]*bucket.KeyBucket, config.Buckets),
+func NewStore(opt ...Option) *Store {
+
+	opts := defaultOptions
+	for _, o := range opt {
+		o(&opts)
+	}
+
+	log.Infof("Store: Options %+v", opts)
+
+	store := &Store{nodeId: opts.nodeId,
+		opts:       opts,
+		keyBucket:  make([]*bucket.KeyBucket, opts.buckets),
 		rateConfig: make(map[string]*RateConfig),
-		bucketMask: uint32(config.Buckets) - 1}
-	store.nodeId = config.NodeId
-	for i := 0; i < config.Buckets; i++ {
+		bucketMask: uint32(opts.buckets) - 1}
+	store.nodeId = opts.nodeId
+	for i := 0; i < opts.buckets; i++ {
 		store.keyBucket[i] = bucket.NewKeyBucket()
 	}
 	store.syncPool = &sync.Pool{
@@ -82,19 +229,19 @@ func NewStore(config StoreConfig) *Store {
 			return &com.SyncCommand{}
 		},
 	}
-	store.syncChannel = make(chan (*com.SyncCommand), store.config.SyncBuffer)
+	store.syncChannel = make(chan (*com.SyncCommand), store.opts.syncBuffer)
 	store.initRingPop()
 	store.registerClusterNode()
 	store.LoadRateConfig()
-	if store.config.StatsDEnabled {
+	if store.opts.statsDEnabled {
 		event.GetMgrInstance().RegisterHandler(event.KEYEVENT, store)
-		statsd, err := statsd.New(statsd.Address(store.config.StatsDHostPort), statsd.SampleRate(store.config.StatsDSampleRate))
+		statsd, err := statsd.New(statsd.Address(store.opts.statsDHostPort), statsd.SampleRate(store.opts.statsDSampleRate))
 		if err == nil {
 			store.statsd = statsd
 		} else {
 
 			log.Infof("Node: Error initialising statsd %s", err)
-			store.config.StatsDEnabled = false
+			store.opts.statsDEnabled = false
 		}
 	}
 	store.startSyncWorker()
@@ -107,9 +254,9 @@ func (s *Store) Handle(e event.Event) {
 	if ok {
 		log.Debugf("Sending stats %+v", e)
 		if kevent.Allowed {
-			s.statsd.Count(s.config.StatsDBucket+".golimit."+kevent.Key+".allowed", kevent.Count)
+			s.statsd.Count(s.opts.statsDBucket+".golimit."+kevent.Key+".allowed", kevent.Count)
 		} else {
-			s.statsd.Count(s.config.StatsDBucket+".golimit."+kevent.Key+".blocked", kevent.Count)
+			s.statsd.Count(s.opts.statsDBucket+".golimit."+kevent.Key+".blocked", kevent.Count)
 		}
 	}
 
@@ -121,7 +268,7 @@ func (s *Store) startSyncWorker() {
 		m := make(map[string]*com.SyncCommand)
 		send := false
 		close := false
-		timer := time.NewTimer(time.Millisecond * time.Duration(s.config.UnsyncedTimeLimit))
+		timer := time.NewTimer(time.Millisecond * time.Duration(s.opts.unsyncedTimeLimit))
 		for {
 			send = false
 			close = false
@@ -146,7 +293,7 @@ func (s *Store) startSyncWorker() {
 							m[sCmd.Key] = sCmd
 						}
 					}
-					if m[key].Count > s.config.UnsyncedCtrLimit || send {
+					if m[key].Count > s.opts.unsyncedCtrLimit || send {
 						log.Debugf("Store: Sync Worker Unsynced Limit reached")
 						send = true
 					}
@@ -175,7 +322,7 @@ func (s *Store) startSyncWorker() {
 				}
 			}
 			timer.Stop()
-			timer.Reset(time.Millisecond * time.Duration(s.config.UnsyncedTimeLimit))
+			timer.Reset(time.Millisecond * time.Duration(s.opts.unsyncedTimeLimit))
 			if close {
 				log.Debugf("Store: Sync Worker Closing")
 				break
@@ -202,7 +349,7 @@ func (s *Store) getKeyBucket(key string) *bucket.KeyBucket {
 }
 
 func (s *Store) RateLimitGlobal(key string, count int32) bool {
-	//If not ratelimit config defined Allow
+	//If not ratelimit opts defined Allow
 	rateConfig := s.rateConfig[key]
 	blocked := false
 	if rateConfig != nil {
@@ -227,7 +374,7 @@ func (s *Store) Incr(key string, count int32, threshold int32, window int32, pea
 		sCmd.Force = dosync
 		s.syncChannel <- sCmd
 	}
-	if s.config.StatsDEnabled {
+	if s.opts.statsDEnabled {
 		e := event.GetMgrInstance().GetPool(event.KEYEVENT).Get().(*event.KeyEvent)
 		e.Count = count
 		e.Key = key
@@ -242,24 +389,24 @@ func (s *Store) Incr(key string, count int32, threshold int32, window int32, pea
 func (s *Store) gc() {
 	go func() {
 		for {
-			time.Sleep(time.Duration(s.config.GcInterval) * time.Millisecond)
-			log.Debugf("Store: GC stated")
+			time.Sleep(time.Duration(s.opts.gcInterval) * time.Millisecond)
+			log.Debugf(s.nodeId + " Store: GC stated")
 			for _, b := range s.keyBucket {
 				b.Lock()
 				for k, e := range b.Lookup() {
-					log.Debugf("Store: GC checking key %s expiry %d", k, e.Expiry())
-					if e.Expiry()+(time.Duration(s.config.GcGrace)*time.Millisecond).Nanoseconds() < time.Now().UnixNano() {
+					log.Debugf(s.nodeId+" Store: GC checking key %s expiry %d", k, e.Expiry())
+					if e.Expiry()+(time.Duration(s.opts.gcGrace)*time.Millisecond).Nanoseconds() < time.Now().UnixNano() {
 						e.Lock()
 						if e.Expired() {
 							delete(b.Lookup(), k)
-							log.Debugf("Store: GC deleting key %s", k)
+							log.Debugf(s.nodeId+" Store: GC deleting key %s", k)
 						}
 						e.Unlock()
 					}
 				}
 				b.Unlock()
 			}
-			log.Debugf("Store: GC done")
+			log.Debugf(s.nodeId + " Store: GC done")
 		}
 	}()
 }
@@ -271,7 +418,7 @@ func (s *Store) Close() {
 }
 
 func (s *Store) IsAuthorised(secret string) bool {
-	return secret == s.config.ApiSecret
+	return secret == s.opts.apiSecret
 }
 
 func (s *Store) StatsDClient() *statsd.Client {

@@ -10,10 +10,31 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 )
+
+type StoreConfig struct {
+	ClusterName       string  `yaml:clustername,json:"clustername"`
+	NodeId            string  `yaml:nodeid,json:"nodeid"`
+	HostName          string  `yaml:hostname,json:"hostname"`
+	TChannelPort      string  `yaml:tchannelport,json:"tchannelport"`
+	Seed              string  `yaml:seednodes,json:"seednodes"`
+	SyncBuffer        int     `yaml:syncbuffer,json:"syncbuffer"`
+	Buckets           int     `yaml:buckets,json:"buckets"`
+	StatsDEnabled     bool    `yaml:statsdenabled,json:"statsdenabled"`
+	HttpPort          int     `yaml:httpport,json:"httpport"`
+	UnsyncedCtrLimit  int32   `yaml:unsyncedctrlimit,json:"unsyncedctrlimit"`
+	UnsyncedTimeLimit int     `yaml:unsyncedtimelimit,json:"unsyncedtimelimit"`
+	StatsDHostPort    string  `yaml:statsdhostport,json:"statsdhostport"`
+	StatsDSampleRate  float32 `yaml:statsdsamplerate,json:"statsdsamplerate"`
+	StatsDBucket      string  `yaml:statsdbucket,json:"statsdbucket"`
+	GcInterval        int     `yaml:gcinterval,json:"gcinterval"`
+	ApiSecret         string  `yaml:apisecret,json:"apisecret"`
+	GcGrace           int     `yaml:gcgrace,json:"gcgrace"`
+}
 
 func main() {
 
@@ -41,7 +62,7 @@ func main() {
 	log.SetFormatter(customFormatter)
 	log.Info("Starting Go limiter")
 
-	configObj := store.NewDefaultStoreConfig()
+	configObj := StoreConfig{}
 	{
 		bytes, err := ioutil.ReadFile(configfileName)
 		if err != nil {
@@ -63,7 +84,12 @@ func main() {
 	}
 	log.Infof("StoreConfig: %+v", configObj)
 
-	store := store.NewStore(configObj)
+	store := store.NewStore(
+		store.WithClusterName(configObj.ClusterName),
+		store.WithHttpPort(strconv.Itoa(configObj.HttpPort)),
+		store.WithSeed(configObj.Seed),
+		store.WithTChannelPort(configObj.TChannelPort),
+	)
 
 	http.NewGoHttpServer(configObj.HttpPort, configObj.HostName, store)
 

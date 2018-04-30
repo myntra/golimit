@@ -123,7 +123,7 @@ func (em *goLimitEventManager) startEventWorkers() {
 	}
 }
 
-func (em *goLimitEventManager) Publish(event Event) bool{
+func (em *goLimitEventManager) Publish(event Event) bool {
 
 	select {
 	case em.eventChan <- event:

@@ -7,7 +7,6 @@ type Clock interface {
 }
 
 type RealClock struct {
-
 }
 
 func (r *RealClock) Now() time.Time {
@@ -19,17 +18,17 @@ type UnRealClock struct {
 }
 
 func (ur *UnRealClock) Now() time.Time {
-	return time.Unix(0,ur.current)
+	return time.Unix(0, ur.current)
 }
 
 func (ur *UnRealClock) AddSeconds(seconds int64) time.Time {
-	ur.current+=seconds* 1000000000
-	return time.Unix(0,ur.current)
+	ur.current += seconds * 1000000000
+	return time.Unix(0, ur.current)
 }
 
 func (ur *UnRealClock) Add(nanoSeconds int64) time.Time {
-	ur.current+=nanoSeconds
-	return time.Unix(0,ur.current)
+	ur.current += nanoSeconds
+	return time.Unix(0, ur.current)
 }
 
 func (ur *UnRealClock) ResetTime(nanoSeconds int64) {
@@ -37,5 +36,5 @@ func (ur *UnRealClock) ResetTime(nanoSeconds int64) {
 }
 
 func (ur *UnRealClock) ResetTimeSeconds(seconds int64) {
-	ur.current = seconds* 1000000000
+	ur.current = seconds * 1000000000
 }

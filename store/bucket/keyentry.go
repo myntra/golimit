@@ -1,9 +1,9 @@
 package bucket
 
 import (
+	"github.com/myntra/golimit/store/clock"
 	"sync"
 	"sync/atomic"
-	"github.com/myntra/golimit/store/clock"
 )
 
 type KeyEntry struct {
@@ -11,7 +11,7 @@ type KeyEntry struct {
 	expires      int64
 	lastmodified int64
 	count        int32
-	clock		 clock.Clock
+	clock        clock.Clock
 }
 
 func (e *KeyEntry) Count() int32 {
@@ -28,15 +28,15 @@ func (e *KeyEntry) Expiry() int64 {
 
 func NewEntry(count int32, expires int64, clock clock.Clock) *KeyEntry {
 	e := &KeyEntry{count: count, expires: expires,
-		lastmodified: clock.Now().UnixNano(),clock:clock}
+		lastmodified: clock.Now().UnixNano(), clock: clock}
 	return e
 }
 
-func (e *KeyEntry) ReInit(count int32, expires int64,clock clock.Clock) {
+func (e *KeyEntry) ReInit(count int32, expires int64, clock clock.Clock) {
 	atomic.StoreInt64(&e.lastmodified, e.clock.Now().UnixNano())
 	atomic.StoreInt64(&e.expires, expires)
 	atomic.StoreInt32(&e.count, count)
-	e.clock=clock
+	e.clock = clock
 }
 
 func (e *KeyEntry) Expired() bool {

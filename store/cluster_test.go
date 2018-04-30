@@ -1,16 +1,16 @@
 package store
 
 import (
+	"github.com/myntra/golimit/store/clock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
-	"github.com/uber/tchannel-go"
 	"github.com/uber/ringpop-go"
-	"log"
 	"github.com/uber/ringpop-go/discovery/statichosts"
 	"github.com/uber/ringpop-go/swim"
-	"github.com/myntra/golimit/store/clock"
+	"github.com/uber/tchannel-go"
+	"log"
+	"os"
+	"testing"
 	"time"
 )
 
@@ -35,18 +35,17 @@ func TestStoreCluster_Ctr_Limit_test(t *testing.T) {
 	configStore4.seed = hostname + ":" + configStore1.tchannelport
 	_clock := &clock.UnRealClock{}
 	store1 := NewStore(WithTChannelPort(configStore1.tchannelport),
-		WithSeed(configStore1.seed),WithClock(_clock),
-		WithUnsyncedTimeLimit(configStore1.unsyncedTimeLimit),WithUnsyncedCtrLimit(10))
+		WithSeed(configStore1.seed), WithClock(_clock),
+		WithUnsyncedTimeLimit(configStore1.unsyncedTimeLimit), WithUnsyncedCtrLimit(10))
 	store2 := NewStore(WithTChannelPort(configStore2.tchannelport),
-		WithSeed(configStore2.seed),WithClock(_clock),
-		WithUnsyncedTimeLimit(configStore2.unsyncedTimeLimit),WithUnsyncedCtrLimit(10))
+		WithSeed(configStore2.seed), WithClock(_clock),
+		WithUnsyncedTimeLimit(configStore2.unsyncedTimeLimit), WithUnsyncedCtrLimit(10))
 	store3 := NewStore(WithTChannelPort(configStore3.tchannelport),
-		WithSeed(configStore3.seed),WithClock(_clock),
-		WithUnsyncedTimeLimit(configStore3.unsyncedTimeLimit),WithUnsyncedCtrLimit(10))
+		WithSeed(configStore3.seed), WithClock(_clock),
+		WithUnsyncedTimeLimit(configStore3.unsyncedTimeLimit), WithUnsyncedCtrLimit(10))
 	store4 := NewStore(WithTChannelPort(configStore4.tchannelport),
-		WithSeed(configStore4.seed),WithClock(_clock),
-		WithUnsyncedTimeLimit(configStore4.unsyncedTimeLimit),WithUnsyncedCtrLimit(10))
-
+		WithSeed(configStore4.seed), WithClock(_clock),
+		WithUnsyncedTimeLimit(configStore4.unsyncedTimeLimit), WithUnsyncedCtrLimit(10))
 
 	blocked := store1.Incr("one", 1, 10, 60, false)
 	assert.False(t, blocked)
@@ -104,20 +103,19 @@ func TestStoreCluster_Timeout_Limit_test(t *testing.T) {
 	configStore4.tchannelport = "2358"
 	configStore4.unsyncedTimeLimit = 1000
 	configStore4.seed = hostname + ":" + configStore1.tchannelport
-	_clock:=&clock.UnRealClock{}
+	_clock := &clock.UnRealClock{}
 	store1 := NewStore(WithTChannelPort(configStore1.tchannelport),
-		WithSeed(configStore1.seed),WithClock(_clock), WithUnsyncedTimeLimit(1000),
+		WithSeed(configStore1.seed), WithClock(_clock), WithUnsyncedTimeLimit(1000),
 		WithUnsyncedTimeLimit(configStore1.unsyncedTimeLimit))
 	store2 := NewStore(WithTChannelPort(configStore2.tchannelport),
-		WithSeed(configStore2.seed),WithClock(_clock),WithUnsyncedTimeLimit(1000),
+		WithSeed(configStore2.seed), WithClock(_clock), WithUnsyncedTimeLimit(1000),
 		WithUnsyncedTimeLimit(configStore2.unsyncedTimeLimit))
 	store3 := NewStore(WithTChannelPort(configStore3.tchannelport),
-		WithSeed(configStore3.seed),WithClock(_clock),WithUnsyncedTimeLimit(1000),
+		WithSeed(configStore3.seed), WithClock(_clock), WithUnsyncedTimeLimit(1000),
 		WithUnsyncedTimeLimit(configStore3.unsyncedTimeLimit))
 	store4 := NewStore(WithTChannelPort(configStore4.tchannelport),
-		WithSeed(configStore4.seed),WithClock(_clock),WithUnsyncedTimeLimit(1000),
+		WithSeed(configStore4.seed), WithClock(_clock), WithUnsyncedTimeLimit(1000),
 		WithUnsyncedTimeLimit(configStore4.unsyncedTimeLimit))
-
 
 	blocked := store1.Incr("two", 1, 10, 60, false)
 	assert.False(t, blocked)
@@ -161,23 +159,23 @@ func TestStoreCluster_Node_Join(t *testing.T) {
 	configStore4.unsyncedTimeLimit = 1000
 	configStore4.seed = hostname + ":" + configStore1.tchannelport
 
-	_clock:=&clock.UnRealClock{}
-	store1 := NewStore(WithTChannelPort(configStore1.tchannelport),WithClock(_clock),
+	_clock := &clock.UnRealClock{}
+	store1 := NewStore(WithTChannelPort(configStore1.tchannelport), WithClock(_clock),
 		WithSeed(configStore1.seed))
 	time.Sleep(time.Second)
 	nodes, _ := store1.ringpop.GetReachableMembers()
 	assert.Equal(t, 1, len(nodes))
-	store2 := NewStore(WithTChannelPort(configStore2.tchannelport),WithClock(_clock),
+	store2 := NewStore(WithTChannelPort(configStore2.tchannelport), WithClock(_clock),
 		WithSeed(configStore2.seed))
 	time.Sleep(time.Second)
 	nodes, _ = store2.ringpop.GetReachableMembers()
 	assert.Equal(t, 2, len(nodes))
-	store3 := NewStore(WithTChannelPort(configStore3.tchannelport),WithClock(_clock),
+	store3 := NewStore(WithTChannelPort(configStore3.tchannelport), WithClock(_clock),
 		WithSeed(configStore3.seed))
 	time.Sleep(time.Second)
 	nodes, _ = store3.ringpop.GetReachableMembers()
 	assert.Equal(t, 3, len(nodes))
-	store4 := NewStore(WithTChannelPort(configStore4.tchannelport),WithClock(_clock),
+	store4 := NewStore(WithTChannelPort(configStore4.tchannelport), WithClock(_clock),
 		WithSeed(configStore4.seed))
 	time.Sleep(time.Second)
 	nodes, _ = store4.ringpop.GetReachableMembers()
@@ -196,8 +194,8 @@ func TestStoreCluster_GC(t *testing.T) {
 	configStore2.tchannelport = "2376"
 	configStore2.unsyncedTimeLimit = 1000
 	configStore2.seed = hostname + ":" + configStore1.tchannelport
-	_clock:=&clock.UnRealClock{}
-	store1 := NewStore(WithTChannelPort(configStore1.tchannelport),WithClock(_clock),
+	_clock := &clock.UnRealClock{}
+	store1 := NewStore(WithTChannelPort(configStore1.tchannelport), WithClock(_clock),
 		WithSeed(configStore1.seed),
 		WithUnsyncedTimeLimit(configStore1.unsyncedTimeLimit),
 		WithGcGrace(1000),
@@ -205,7 +203,7 @@ func TestStoreCluster_GC(t *testing.T) {
 	time.Sleep(time.Second)
 	nodes, _ := store1.ringpop.GetReachableMembers()
 	assert.Equal(t, 1, len(nodes))
-	store2 := NewStore(WithTChannelPort(configStore2.tchannelport),WithClock(_clock),
+	store2 := NewStore(WithTChannelPort(configStore2.tchannelport), WithClock(_clock),
 		WithSeed(configStore2.seed),
 		WithUnsyncedTimeLimit(configStore1.unsyncedTimeLimit),
 		WithGcGrace(1000),
@@ -214,14 +212,13 @@ func TestStoreCluster_GC(t *testing.T) {
 	nodes, _ = store1.ringpop.GetReachableMembers()
 	assert.Equal(t, 2, len(nodes))
 
-
 	store1.Incr("one", 1, 1, 1, false)
 	store2.Incr("one", 1, 1, 1, false)
 	store1.Incr("two", 1, 1, 5, false)
 	store2.Incr("three", 1, 1, 5, false)
 
 	_clock.AddSeconds(3)
-	time.Sleep(1080*time.Millisecond)
+	time.Sleep(1080 * time.Millisecond)
 	e1 := store1.getKeyBucket("one").GetEntry("one")
 	e2 := store2.getKeyBucket("one").GetEntry("one")
 	e3 := store2.getKeyBucket("two").GetEntry("two")
@@ -233,7 +230,7 @@ func TestStoreCluster_GC(t *testing.T) {
 	assert.False(t, e4 == nil)
 
 	_clock.AddSeconds(4)
-	time.Sleep(1080*time.Millisecond)
+	time.Sleep(1080 * time.Millisecond)
 	logrus.Infof("Checking Now")
 	e3 = store2.getKeyBucket("two").GetEntry("two")
 	e4 = store1.getKeyBucket("three").GetEntry("three")
@@ -243,12 +240,10 @@ func TestStoreCluster_GC(t *testing.T) {
 
 }
 
-
 func TestClusterWithRingPop(t *testing.T) {
 
-
 	tchannel, err := tchannel.NewChannel("testc", nil)
-	if(err!=nil){
+	if err != nil {
 		log.Fatalf("Cluster: could not listen on given hostport: %v", err)
 	}
 	ringpop, err := ringpop.New("testc",
@@ -266,7 +261,7 @@ func TestClusterWithRingPop(t *testing.T) {
 		log.Fatalf("Cluster: ringpop bootstrap failed: %v", err)
 	}
 
-	store:=NewStore(
+	store := NewStore(
 		WithHostName("localhost"),
 		WithRingpop(ringpop),
 		WithTChannel(tchannel),
@@ -276,6 +271,6 @@ func TestClusterWithRingPop(t *testing.T) {
 
 	time.Sleep(time.Second)
 	nodes, _ := store.ringpop.GetReachableMembers()
-	assert.Equal(t,1,len(nodes))
+	assert.Equal(t, 1, len(nodes))
 	store.Incr("one", 1, 1, 10, false)
 }

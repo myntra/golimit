@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/myntra/golimit/gen-go/com"
 	"github.com/myntra/golimit/store/bucket"
+	"github.com/myntra/golimit/store/clock"
 	"github.com/myntra/golimit/store/event"
 	log "github.com/sirupsen/logrus"
 	"github.com/spaolacci/murmur3"
@@ -17,7 +18,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"github.com/myntra/golimit/store/clock"
 )
 
 var hostname string
@@ -45,9 +45,8 @@ type options struct {
 	gcGrace           int
 	tchannel          *tchannel.Channel
 	ringpop           *ringpop.Ringpop
-	clock			  clock.Clock
+	clock             clock.Clock
 }
-
 
 var defaultOptions = options{
 	clusterName:       "golimit",
@@ -68,7 +67,7 @@ var defaultOptions = options{
 	gcGrace:           1800000,
 	tchannel:          nil,
 	ringpop:           nil,
-	clock:  &clock.RealClock{},
+	clock:             &clock.RealClock{},
 }
 
 type Option func(*options)
@@ -84,7 +83,6 @@ func WithTChannel(tchannel *tchannel.Channel) Option {
 		o.tchannel = tchannel
 	}
 }
-
 
 func WithClock(clock clock.Clock) Option {
 	return func(o *options) {

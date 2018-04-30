@@ -1,20 +1,20 @@
 package bucket
 
 import (
+	"github.com/myntra/golimit/store/clock"
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
-	"github.com/myntra/golimit/store/clock"
 )
 
 type KeyBucket struct {
 	sync.RWMutex
 	lookup map[string]*KeyEntry
-	clock clock.Clock
+	clock  clock.Clock
 }
 
 func NewKeyBucket(clock clock.Clock) *KeyBucket {
-	b := &KeyBucket{clock:clock}
+	b := &KeyBucket{clock: clock}
 	b.lookup = make(map[string]*KeyEntry)
 	return b
 }
@@ -37,7 +37,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 		e = b.lookup[key]
 		if e == nil {
 			log.Debugf("Incr: Double check entry not found %s", key)
-			e = NewEntry(0, GenExpiry(t, window),b.clock)
+			e = NewEntry(0, GenExpiry(t, window), b.clock)
 			b.lookup[key] = e
 		}
 		b.Unlock()
@@ -45,7 +45,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 	e.Lock()
 	if e.Expired() {
 		log.Debugf("Incr: Found entry expired, reiniting %s", key)
-		e.ReInit(0, GenExpiry(t, window),b.clock)
+		e.ReInit(0, GenExpiry(t, window), b.clock)
 	}
 
 	previousTotal := e.Count()
@@ -76,14 +76,14 @@ func (b *KeyBucket) Sync(key string, count int32, expiry int64) {
 		b.Lock()
 		e = b.lookup[key]
 		if e == nil {
-			e = NewEntry(0, expiry,b.clock)
+			e = NewEntry(0, expiry, b.clock)
 			b.lookup[key] = e
 		}
 		b.Unlock()
 	}
 	e.Lock()
 	if e.Expired() {
-		e.ReInit(0, expiry,b.clock)
+		e.ReInit(0, expiry, b.clock)
 	}
 	e.Sync(count)
 	e.Unlock()

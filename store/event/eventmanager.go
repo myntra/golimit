@@ -29,8 +29,8 @@ type goLimitEventManager struct {
 	poolLock    sync.RWMutex
 }
 
-var instance *goLimitEventManager
-var once sync.Once
+var instance, instance2 *goLimitEventManager
+var once, once2 sync.Once
 
 func GetMgrInstance() EventManager {
 	once.Do(func() {
@@ -42,6 +42,18 @@ func GetMgrInstance() EventManager {
 
 	})
 	return instance
+}
+
+func GetMgrInstanceWithParam(workerCount int, eventChanSize int) EventManager {
+	once2.Do(func() {
+		instance2 = &goLimitEventManager{workerCount: workerCount, handlers: make(map[string][]EventHandler),
+			eventChan: make(chan (Event), eventChanSize)}
+		instance2.objPools = make(map[string]*sync.Pool)
+		instance2.poolLock = sync.RWMutex{}
+		instance2.startEventWorkers()
+
+	})
+	return instance2
 }
 
 func (em *goLimitEventManager) GetPool(poolname string) *sync.Pool {
@@ -111,12 +123,13 @@ func (em *goLimitEventManager) startEventWorkers() {
 	}
 }
 
-func (em *goLimitEventManager) Publish(event Event) {
+func (em *goLimitEventManager) Publish(event Event) bool{
 
 	select {
 	case em.eventChan <- event:
 	default:
 		log.Errorf("Event Channel Full, discarding event")
+		return false
 	}
-
+	return true
 }

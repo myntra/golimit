@@ -3,23 +3,26 @@ package bucket
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
+	"github.com/myntra/golimit/store/clock"
 )
 
 func TestEntry(t *testing.T) {
 
 	//Expired entry check
-	expiry := time.Now().UnixNano()
 	count := int32(1)
-
-	e := NewEntry(count, expiry)
+	_clock:= &clock.UnRealClock{}
+	expiry := _clock.Now().UnixNano()
+	e := NewEntry(count, expiry, _clock)
 	assert.Equal(t, expiry, e.expires)
 	assert.Equal(t, count, e.Count())
-	assert.True(t, e.Expiry() < time.Now().UnixNano())
-	assert.Equal(t, true, e.Expired())
-	assert.True(t, e.LastModified() < time.Now().UnixNano())
 
-	e.ReInit(1, time.Now().UnixNano()+10000)
+	assert.False(t, e.Expiry() < _clock.Now().UnixNano())
+	_clock.Add(1)
+	assert.True(t, e.Expiry() < _clock.Now().UnixNano())
+	assert.Equal(t, true, e.Expired())
+	assert.True(t, e.LastModified() < _clock.Now().UnixNano())
+
+	e.ReInit(1, _clock.Now().UnixNano()+10000,_clock)
 
 	e.Incr(2)
 

@@ -14,5 +14,5 @@ type EventManager interface {
 	GetPool(poolname string) *sync.Pool
 	RegisterHandler(routekey string, handler EventHandler)
 	UnRegisterHandler(routekey string, handler EventHandler)
-	Publish(event Event)
+	Publish(event Event) bool
 }

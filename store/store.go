@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"github.com/myntra/golimit/store/clock"
 )
 
 var hostname string
@@ -44,7 +45,9 @@ type options struct {
 	gcGrace           int
 	tchannel          *tchannel.Channel
 	ringpop           *ringpop.Ringpop
+	clock			  clock.Clock
 }
+
 
 var defaultOptions = options{
 	clusterName:       "golimit",
@@ -65,6 +68,7 @@ var defaultOptions = options{
 	gcGrace:           1800000,
 	tchannel:          nil,
 	ringpop:           nil,
+	clock:  &clock.RealClock{},
 }
 
 type Option func(*options)
@@ -78,6 +82,13 @@ func WithRingpop(ringpop *ringpop.Ringpop) Option {
 func WithTChannel(tchannel *tchannel.Channel) Option {
 	return func(o *options) {
 		o.tchannel = tchannel
+	}
+}
+
+
+func WithClock(clock clock.Clock) Option {
+	return func(o *options) {
+		o.clock = clock
 	}
 }
 
@@ -222,7 +233,7 @@ func NewStore(opt ...Option) *Store {
 		bucketMask: uint32(opts.buckets) - 1}
 	store.nodeId = opts.nodeId
 	for i := 0; i < opts.buckets; i++ {
-		store.keyBucket[i] = bucket.NewKeyBucket()
+		store.keyBucket[i] = bucket.NewKeyBucket(opts.clock)
 	}
 	store.syncPool = &sync.Pool{
 		New: func() interface{} {
@@ -379,7 +390,7 @@ func (s *Store) Incr(key string, count int32, threshold int32, window int32, pea
 		e.Count = count
 		e.Key = key
 		e.Allowed = !blocked
-		e.Time = time.Now().UnixNano()
+		e.Time = s.opts.clock.Now().UnixNano()
 		event.GetMgrInstance().Publish(e)
 	}
 
@@ -395,7 +406,7 @@ func (s *Store) gc() {
 				b.Lock()
 				for k, e := range b.Lookup() {
 					log.Debugf(s.nodeId+" Store: GC checking key %s expiry %d", k, e.Expiry())
-					if e.Expiry()+(time.Duration(s.opts.gcGrace)*time.Millisecond).Nanoseconds() < time.Now().UnixNano() {
+					if e.Expiry()+(time.Duration(s.opts.gcGrace)*time.Millisecond).Nanoseconds() < s.opts.clock.Now().UnixNano() {
 						e.Lock()
 						if e.Expired() {
 							delete(b.Lookup(), k)

@@ -4,15 +4,17 @@ import (
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
+	"github.com/myntra/golimit/store/clock"
 )
 
 type KeyBucket struct {
 	sync.RWMutex
 	lookup map[string]*KeyEntry
+	clock clock.Clock
 }
 
-func NewKeyBucket() *KeyBucket {
-	b := &KeyBucket{}
+func NewKeyBucket(clock clock.Clock) *KeyBucket {
+	b := &KeyBucket{clock:clock}
 	b.lookup = make(map[string]*KeyEntry)
 	return b
 }
@@ -27,7 +29,7 @@ func (b *KeyBucket) GetEntry(key string) *KeyEntry {
 func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bool, int64, bool) {
 
 	log.Debugf("Incr: incrementing key, count, limit, window %s, %d, %d, %d %t", key, count, limit)
-	t := time.Now().UnixNano()
+	t := b.clock.Now().UnixNano()
 	e := b.GetEntry(key)
 	if e == nil {
 		log.Debugf("Incr: entry not found %s", key)
@@ -35,7 +37,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 		e = b.lookup[key]
 		if e == nil {
 			log.Debugf("Incr: Double check entry not found %s", key)
-			e = NewEntry(0, GenExpiry(t, window))
+			e = NewEntry(0, GenExpiry(t, window),b.clock)
 			b.lookup[key] = e
 		}
 		b.Unlock()
@@ -43,7 +45,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 	e.Lock()
 	if e.Expired() {
 		log.Debugf("Incr: Found entry expired, reiniting %s", key)
-		e.ReInit(0, GenExpiry(t, window))
+		e.ReInit(0, GenExpiry(t, window),b.clock)
 	}
 
 	previousTotal := e.Count()
@@ -66,7 +68,7 @@ func (b *KeyBucket) Incr(key string, count int32, limit int32, window int32) (bo
 }
 
 func (b *KeyBucket) Sync(key string, count int32, expiry int64) {
-	if time.Now().UnixNano() > expiry {
+	if b.clock.Now().UnixNano() > expiry {
 		return
 	}
 	e := b.GetEntry(key)
@@ -74,14 +76,14 @@ func (b *KeyBucket) Sync(key string, count int32, expiry int64) {
 		b.Lock()
 		e = b.lookup[key]
 		if e == nil {
-			e = NewEntry(0, expiry)
+			e = NewEntry(0, expiry,b.clock)
 			b.lookup[key] = e
 		}
 		b.Unlock()
 	}
 	e.Lock()
 	if e.Expired() {
-		e.ReInit(0, expiry)
+		e.ReInit(0, expiry,b.clock)
 	}
 	e.Sync(count)
 	e.Unlock()

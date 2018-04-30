@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+	"strconv"
 )
 
 type dummyHandler struct {
@@ -39,4 +40,28 @@ func TestGoLimitEventManager(t *testing.T) {
 
 	assert.True(t, nil == mgr.GetPool("unknown"))
 	mgr.GetPool(KEYEVENT).Put(e2)
+}
+
+func TestGetMgrInstance(t *testing.T) {
+	mgr:= GetMgrInstanceWithParam(0,10)
+
+	ch := make(chan Event, 10)
+	dh := &dummyHandler{ch: ch}
+	mgr.RegisterHandler(KEYEVENT, dh)
+
+	for i:=0;i<10;i++{
+		e := mgr.GetPool(KEYEVENT).Get().(*KeyEvent)
+		e.Key = "test"+strconv.Itoa(i)
+		e.Count = 5
+		e.Allowed = true
+		e.Time = time.Now().UnixNano()
+		assert.True(t,mgr.Publish(e))
+	}
+	e := mgr.GetPool(KEYEVENT).Get().(*KeyEvent)
+	e.Key = "test10"
+	e.Count = 5
+	e.Allowed = true
+	e.Time = time.Now().UnixNano()
+	assert.False(t,mgr.Publish(e))
+
 }

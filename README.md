@@ -1,16 +1,30 @@
+## Golimit A Distributed Rate limiter
+Golimit is  Uber [ringpop](https://github.com/uber/ringpop-go "ringpop") based distributed and decentralized rate 
+limiter. It is horizontally scalable and is based on shard nothing architecture. Every node in system is capable of 
+handling read and writes of counters.
+It is designed to offer sub milliseconds latency to caller application. Recommended deployment topology is sidecar 
+model.
+Every golimit node keeps local and global counter for api counter and local value is synchronized with other nodes on 
+configurable periodic interval or at defined threshold. 
 
+#### Architecture
+<b>Http server</b>
+provides  http interface to increment counter against any arbitrary <b>Key</b> string. It also exposes admin api to 
+manage global configurations.
 
-##Golimit A Distributed Rate limiter
+<b>Store</b> encapsulates the data structure and functions to store, manage and replicate counters
+Counter synchronisation is done in asynchronous way so the the caller application is never blocked for cluster sync.
+Synchronizer module  keeps aggregating counters in memory and broadcast to other nodes on periodic intervals or when the 
+counter has crossed threshold. the interval and threshold are configurable.
 
-####Key features
+<b>StatsD Emitter</b> pushed metrics to configure statsd server.
+ 
+![Block Diagram](https://github.com/myntra/golimit/blob/master/images/block.png?raw=true)
 
-- Uses [ringpop](https://github.com/uber/ringpop-go "ringpop") hashring clustering library 
-- Stores counter and keys in memory therefore there is no requirement of external storage.
-- Seamlessly pushes blocked and allowed metrics against every key to statsd
-- Support of persistent store for rate configs. So in case of cluster loss. Cluster starts with last saved config
-- Security: Added security to prevent unauthorised modification of rate config
+#### Deployment
 
-####Installation
+![Block Diagram](https://github.com/myntra/golimit/blob/master/images/block.png?raw=true)
+#### Installation
 1. build
 
      `$ GOOS=linux GOARCH=amd64 go build` 
@@ -26,7 +40,7 @@
 2. Configure
     
     Yml config
-    ```yaml 
+    ```yml
         clustername:  IDEA # Cluster Name
         tchannelport: 2345 # Ringpop T Channel Port
         seed: "127.0.0.1:2345" # Seed node of cluster
@@ -54,9 +68,11 @@
    
    `go get bitbucket.org/myntra/golimitv3`
    
-   ```go 
+```go
+package main
+i
+func main(){
    //instansiate config
- 
     configObj := store.NewDefaultStoreConfig()
     //Update configuation as required
      
@@ -76,10 +92,12 @@
      
     //Ensure Store is closed on program exit
     store.Close()
-    
+}
+```
 
 
-####Development
+
+#### Development
 
 go to github.com/uber/tchannel-go/thrift/thrift-gen
 and do go build to build thrift-gen

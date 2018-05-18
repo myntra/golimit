@@ -33,13 +33,13 @@ later in document. Using as module takes away the pain of deployment and mainten
 
 1. Build
 
-```
-$ GOOS=linux GOARCH=amd64 go build  //Linux
-
-$ GOOS=darwin GOARCH=amd64 go build //OSX 
-
-$ GOOS=windows GOARCH=amd64 go build //Windows
-```
+    ```
+    $ GOOS=linux GOARCH=amd64 go build  //Linux
+    
+    $ GOOS=darwin GOARCH=amd64 go build //OSX 
+    
+    $ GOOS=windows GOARCH=amd64 go build //Windows
+    ```
      
 2. Configure
     
@@ -78,60 +78,95 @@ $ GOOS=windows GOARCH=amd64 go build //Windows
     |T|Threshold in number|
     |P|PeakAveraged 0 or 1, if P=1 the provided rate limit is transposed to per second limit and then applied|
     
-* INCR Request
-   
-   Application passes Key threshold and window and reply is block or not.
-   In following example second curl within 10 seconds gives back blocked =true
-    
-    ```
-    $  curl -X POST "http://localhost:8080/incr?K=abc&T=1&W=10" 
-    
-    {"Block":false}
-    
-    $  curl -X POST "http://localhost:8080/incr?K=abc&T=1&W=10" 
+    * INCR Request
+       
+       Application passes Key threshold and window and reply is block or not.
+       This rate limiting is application driven as application has to pass all rate configuration in every call 
+       In following example second curl within 10 seconds gives back blocked =true
         
-    {"Block":true}
-    ```
+        ```
+        $  curl -X POST "http://localhost:8080/incr?K=abc&T=1&W=10" 
+        
+        {"Block":false}
+        
+        $  curl -X POST "http://localhost:8080/incr?K=abc&T=1&W=10" 
+            
+        {"Block":true}
+        ```
+    * Create/Update global rate configuration, this is for rate limiting which is golimit cluster driven
+        
+        ```
+        $ curl -X PUT  "http://localhost:8080/rate" -d '{"Window":60,"Limit":5,"Key":"a","PeakAveraged":false}' -H "apisecret: alpha" 
+           
+        {"Success":true}
+        
+        $ curl -X POST  "http://localhost:8080/ratelimit?K=a" 
     
-5. Use as go module
+        {"Block":false}
+        
+        # after 5 times
+        # {"Block":true}
+        
+        ```
+    * Ratelimit Request
+    
+        ```
+         $ curl -X POST  "http://localhost:8080/ratelimit?K=a" 
+         
+         {"Block":false}
+         
+        ```
+        
+    * Get All defined Rate Config
+    
+        ```
+        $ curl  "http://localhost:8080/rateall" 
+        
+        {"a":{"Window":60,"Limit":5,"PeakAveraged":false}}
+        
+        ```
+    
+    * Get a specific Rate Config
+    
+        ```
+        $ curl  "http://localhost:8080/rate?K=a" 
+    
+        {"Window":60,"Limit":5,"PeakAveraged":false}%
+        
+        ```
+
+5. Use as Go module
    
-   To install library:
+    If application is in golang. Golimit can be used as module directly instead of deploying as separate process.
+    
+    
+    To install library:
+    
+    ```go get github.com/myntra/golimit```
    
-   `go get bitbucket.org/myntra/golimit`
-   
-```go
-package main
-import("bitbucket.org/myntra/golimit/store")
-func main(){
-   //instansiate config
-    configObj := store.NewDefaultStoreConfig()
-    //Update configuation as required
-     
-     
-    //Instantiate Store object, Use single store instance in one application
-    store:=store.NewStore(configObj)
-     
-     
-     
-     
-    blocked:=store.Incr("key",1,1000,60,true) // Increment api
-     
-     
-    if(blocked){
-        //Blocked
+    ```go
+    package main
+    import("github.com/myntra/golimit/store")
+    func main(){
+       //instansiate config
+        configObj := store.NewDefaultStoreConfig()
+        //Update configuation as required
+         
+         
+        //Instantiate Store object, Use single store instance in one application
+        store:=store.NewStore(configObj)
+         
+         
+         
+         
+        blocked:=store.Incr("key",1,1000,60,true) // Increment api
+         
+         
+        if(blocked){
+            //Blocked
+        }
+         
+        //Ensure Store is closed on program exit
+        store.Close()
     }
-     
-    //Ensure Store is closed on program exit
-    store.Close()
-}
-```
-
-
-
-#### Development
-
-go to github.com/uber/tchannel-go/thrift/thrift-gen
-and do go build to build thrift-gen
-
-To generate thrift code
-`{gopath}/src/github.com/uber/tchannel-go/thrift/thrift-gen/thrift-gen --generateThrift --outputDir gen-go --inputFile store/store.thrift`
+    ```

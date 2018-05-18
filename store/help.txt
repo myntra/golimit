@@ -1,0 +1,8 @@
+#generate thrift
+
+
+go to github.com/uber/tchannel-go/thrift/thrift-gen
+and do go build to build thrift-gen
+
+To generate thrift code
+`{gopath}/src/github.com/uber/tchannel-go/thrift/thrift-gen/thrift-gen --generateThrift --outputDir gen-go --inputFile store/store.thrift`

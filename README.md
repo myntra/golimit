@@ -7,7 +7,7 @@ model.
 Every golimit node keeps local and global counter for api counter and local value is synchronized with other nodes on 
 configurable periodic interval or at defined threshold. 
 
-#### Architecture
+### Architecture
 <b>Http server</b>
 provides  http interface to increment counter against any arbitrary <b>Key</b> string. It also exposes admin api to 
 manage global configurations.
@@ -22,26 +22,30 @@ counter has crossed threshold. the interval and threshold are configurable.
 ![Block Diagram](https://github.com/myntra/golimit/blob/master/images/block.png?raw=true)
 
 #### Deployment
+Suggested deployment model is to have golimit installed as sidecar. This will ensure application latency to 
+sub milliseconds level.
+For Go applications golimit can be directly integrated as a module,the way of using golimit as module is  explained 
+later in document. Using as module takes away the pain of deployment and maintenance.
 
-![Block Diagram](https://github.com/myntra/golimit/blob/master/images/block.png?raw=true)
+![Block Diagram](https://github.com/myntra/golimit/blob/master/images/deployment.png?raw=true)
+
 #### Installation
-1. build
 
-     `$ GOOS=linux GOARCH=amd64 go build` 
-     
-     for other platforms
-     
-     `GOOS=linux GOARCH=amd64 go install
-      GOOS=darwin GOARCH=amd64 go install
-      GOOS=windows GOARCH=amd64 go install
-      GOOS=windows GOARCH=386 go install`
-     
+1. Build
+
+```
+$ GOOS=linux GOARCH=amd64 go build  //Linux
+
+$ GOOS=darwin GOARCH=amd64 go build //OSX 
+
+$ GOOS=windows GOARCH=amd64 go build //Windows
+```
      
 2. Configure
     
     Yml config
-    ```yml
-        clustername:  IDEA # Cluster Name
+    ```yaml
+        clustername:  MyGolimitCluster # Cluster Name
         tchannelport: 2345 # Ringpop T Channel Port
         seed: "127.0.0.1:2345" # Seed node of cluster
         unsyncedctrlimit: 5  # Unsynced counter limit
@@ -51,26 +55,53 @@ counter has crossed threshold. the interval and threshold are configurable.
         statsdhostport: "metrics.xyz.com:80"  # statsd host port
         statsdsamplerate: 1 # Statsd sampling rate
         apisecret: alpha # secret key to use admin apis
+        hostname: "127.0.0.1"
         
     ```
+    Note: Ensure the seed node is always reachable.
     
 3. Run
     
-    `$ ./golimitV3 --config=./golimitconfig.yml `
+    ```
+    $ ./golimitV3 --config=./golimitconfig.yml
+    ```
   
 4. Use from Http Apis
 
     [on madwriter](http://madwriter.myntra.com/docs/golimitv3-v3)
     
+    | Param | Description|
+    |:-------:|:-----------|
+    |K      | Key a string, against this the counters are calculated|
+    |C|Count in number, numbers to increment in one api call, defaults to 1|
+    |W|Window in seconds, time window for which provided threshold is applicable|
+    |T|Threshold in number|
+    |P|PeakAveraged 0 or 1, if P=1 the provided rate limit is transposed to per second limit and then applied|
+    
+* INCR Request
+   
+   Application passes Key threshold and window and reply is block or not.
+   In following example second curl within 10 seconds gives back blocked =true
+    
+    ```
+    $  curl -X POST "http://localhost:8080/incr?K=abc&T=1&W=10" 
+    
+    {"Block":false}
+    
+    $  curl -X POST "http://localhost:8080/incr?K=abc&T=1&W=10" 
+        
+    {"Block":true}
+    ```
+    
 5. Use as go module
    
    To install library:
    
-   `go get bitbucket.org/myntra/golimitv3`
+   `go get bitbucket.org/myntra/golimit`
    
 ```go
 package main
-i
+import("bitbucket.org/myntra/golimit/store")
 func main(){
    //instansiate config
     configObj := store.NewDefaultStoreConfig()

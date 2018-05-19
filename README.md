@@ -134,6 +134,13 @@ later in document. Using as module takes away the pain of deployment and mainten
         {"Window":60,"Limit":5,"PeakAveraged":false}%
         
         ```
+    * Get Cluster Info
+        ```
+        $ curl  "http://localhost:8080/clusterinfo" 
+        
+        {"Whoami":"127.0.0.1:2345","Ready":true,"Uptime":9223372036854775807,"Members":["127.0.0.1:2345"]}   
+
+        ```
 
 5. Use as Go module
    

@@ -148,13 +148,10 @@ later in document. Using as module takes away the pain of deployment and mainten
     package main
     import("github.com/myntra/golimit/store")
     func main(){
-       //instansiate config
-        configObj := store.NewDefaultStoreConfig()
-        //Update configuation as required
-         
+      
          
         //Instantiate Store object, Use single store instance in one application
-        store:=store.NewStore(configObj)
+        store:=store.NewStore()
          
          
          

@@ -58,7 +58,16 @@ func (s *Store) initRingPop() {
 
 		opts := new(swim.BootstrapOptions)
 
-		opts.DiscoverProvider = statichosts.New(strings.Split(s.opts.seed, ",")...)
+		seeds:= strings.Split(s.opts.seed, ",")
+		if len(seeds)>1{
+			opts.JoinSize = 2
+		}else{
+			opts.JoinSize = 1
+		}
+
+		opts.JoinTimeout = 10 * time.Second
+		opts.MaxJoinDuration = 60 * time.Second
+		opts.DiscoverProvider = statichosts.New(seeds...)
 
 		if _, err := s.ringpop.Bootstrap(opts); err != nil {
 			log.Fatalf("Cluster: ringpop bootstrap failed: %v", err)

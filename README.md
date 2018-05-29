@@ -1,6 +1,6 @@
 ## Golimit A Distributed Rate limiter
 Golimit is  Uber [ringpop](https://github.com/uber/ringpop-go "ringpop") based distributed and decentralized rate 
-limiter. It is horizontally scalable and is based on shard nothing architecture. Every node in system is capable of 
+limiter. It is horizontally scalable and is based on shared nothing architecture. Every node in system is capable of 
 handling read and writes of counters.
 It is designed to offer sub milliseconds latency to caller application. Recommended deployment topology is sidecar 
 model.

@@ -1,5 +1,5 @@
 ## Golimit A Distributed Rate limiter
-Golimit is  Uber [ringpop](https://github.com/uber/ringpop-go "ringpop") based distributed and decentralized rate 
+Golimit is Uber [ringpop](https://github.com/uber/ringpop-go "ringpop") based distributed and decentralized rate 
 limiter. It is horizontally scalable and is based on shared nothing architecture. Every node in system is capable of 
 handling read and writes of counters.
 It is designed to offer sub milliseconds latency to caller application. Recommended deployment topology is sidecar 
@@ -9,22 +9,22 @@ configurable periodic interval or at defined threshold.
 
 ### Architecture
 <b>Http server</b>
-provides  http interface to increment counter against any arbitrary <b>Key</b> string. It also exposes admin api to 
+provides http interface to increment counter against any arbitrary <b>Key</b> string. It also exposes admin api to 
 manage global configurations.
 
-<b>Store</b> encapsulates the data structure and functions to store, manage and replicate counters
-Counter synchronisation is done in asynchronous way so the the caller application is never blocked for cluster sync.
-Synchronizer module  keeps aggregating counters in memory and broadcast to other nodes on periodic intervals or when the 
+<b>Store</b> encapsulates the data structure and functions to store, manage and replicate counters.
+Counter synchronisation is done in asynchronous way so the caller application is never blocked for cluster sync.
+Synchronizer module keeps aggregating counters in memory and broadcast to other nodes on periodic intervals or when the 
 counter has crossed threshold. the interval and threshold are configurable.
 
-<b>StatsD Emitter</b> pushed metrics to configure statsd server.
+<b>StatsD Emitter</b> pushes metrics to configured statsd server.
  
 ![Block Diagram](https://github.com/myntra/golimit/blob/master/images/block.png?raw=true)
 
 #### Deployment
 Suggested deployment model is to have golimit installed as sidecar. This will ensure application latency to 
 sub milliseconds level.
-For Go applications golimit can be directly integrated as a module,the way of using golimit as module is  explained 
+For Go applications golimit can be directly integrated as a module, the way of using golimit as module is explained 
 later in document. Using as module takes away the pain of deployment and maintenance.
 
 ![Block Diagram](https://github.com/myntra/golimit/blob/master/images/deployment.png?raw=true)
@@ -144,7 +144,7 @@ later in document. Using as module takes away the pain of deployment and mainten
 
 5. Use as Go module
    
-    If application is in golang. Golimit can be used as module directly instead of deploying as separate process.
+    If application is in golang, golimit can be used as module directly instead of deploying as separate process.
     
     
     To install library:
@@ -153,23 +153,19 @@ later in document. Using as module takes away the pain of deployment and mainten
    
     ```go
     package main
-    import("github.com/myntra/golimit/store")
-    func main(){
-      
-         
+    import ("github.com/myntra/golimit/store")
+    
+    func main() {
+    
         //Instantiate Store object, Use single store instance in one application
-        store:=store.NewStore()
-         
-         
-         
-         
-        blocked:=store.Incr("key",1,1000,60,true) // Increment api
-         
-         
-        if(blocked){
+        store := store.NewStore()
+
+        blocked := store.Incr("key", 1, 1000, 60, true) // Increment api
+
+        if (blocked) {
             //Blocked
         }
-         
+
         //Ensure Store is closed on program exit
         store.Close()
     }

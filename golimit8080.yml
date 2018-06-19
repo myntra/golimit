@@ -1,14 +1,19 @@
-
 clustername:  IDEA
-tchannelport: 2345 #sdsdasdasdasd
-seed: "YOGESHs-MacBook-Pro.local:2345" #sdsadasdas
+tchannelport: 2345
+seed: "YOGESHs-MacBook-Pro.local:2345"
 preprocessworkers:  1000
 preprocessbuffer: 100000
 unsyncedctrlimit: 5
 buckets:  1000
 httpenabled: true
 httpport: 8080
-statsdsamplerate: 1
+statsdsamplerate: .01
 unsyncedtimelimit: 60000
+statsdenabled: true
+statsdbucket: 19june18
+statsdhostport: 127.0.0.1:8125
+unixsocketenable: true
+unixsocket: /tmp/golimit.sock
+syncbuffer: 1000000
 
 

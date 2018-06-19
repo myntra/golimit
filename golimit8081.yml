@@ -1,4 +1,3 @@
-
 clustername:  IDEA
 tchannelport: 2346
 seed: "YOGESHs-MacBook-Pro.local:2345"
@@ -8,6 +7,10 @@ buckets:  1000
 httpenabled: true
 httpport: 8081
 unsyncedctrlimit: 5
-statsdsamplerate: 1
+statsdsamplerate: .01
 unsyncedtimelimit: 60000
-
+statsdenabled: true
+statsdbucket: 19june18
+statsdhostport: 127.0.0.1:8125
+unixsocketenable: true
+unixsocket: /tmp/golimit1.sock

@@ -58,10 +58,10 @@ func (s *Store) initRingPop() {
 
 		opts := new(swim.BootstrapOptions)
 
-		seeds:= strings.Split(s.opts.seed, ",")
-		if len(seeds)>1{
+		seeds := strings.Split(s.opts.seed, ",")
+		if len(seeds) > 1 {
 			opts.JoinSize = 2
-		}else{
+		} else {
 			opts.JoinSize = 1
 		}
 

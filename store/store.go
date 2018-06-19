@@ -35,6 +35,8 @@ type options struct {
 	buckets           int
 	statsDEnabled     bool
 	httpPort          string
+	unixSocks         *string
+	httpOnUnixSocks   bool
 	unsyncedCtrLimit  int32
 	unsyncedTimeLimit int
 	statsDHostPort    string
@@ -53,12 +55,14 @@ var defaultOptions = options{
 	nodeId:            "golimit" + strconv.Itoa(rand.Int()),
 	tchannelport:      "2479",
 	seed:              hostname + ":2479",
-	syncBuffer:        100000,
+	syncBuffer:        1000000,
 	buckets:           1000,
 	statsDEnabled:     false,
 	statsDHostPort:    "",
 	statsDSampleRate:  .0001,
 	httpPort:          "7289",
+	httpOnUnixSocks:   false,
+	unixSocks:         nil,
 	unsyncedCtrLimit:  10,
 	unsyncedTimeLimit: 30000,
 	apiSecret:         "pingpong",
@@ -141,6 +145,18 @@ func WithUnsyncedCtrLimit(limit int32) Option {
 func WithHttpPort(port string) Option {
 	return func(o *options) {
 		o.httpPort = port
+	}
+}
+
+func WithEnableHttpOnUnixSocket(enable bool) Option {
+	return func(o *options) {
+		o.httpOnUnixSocks = enable
+	}
+}
+
+func WithUnixSocket(sockFilePath string) Option {
+	return func(o *options) {
+		o.unixSocks = &sockFilePath
 	}
 }
 

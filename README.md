@@ -56,6 +56,10 @@ later in document. Using as module takes away the pain of deployment and mainten
         statsdsamplerate: 1 # Statsd sampling rate
         apisecret: alpha # secret key to use admin apis
         hostname: "127.0.0.1"
+        unixsocketenable: true #enables unix socket,
+                               #gives nearly 2x better performance in response time 
+                               #when enabled tcp port config will be ignored and disabled 
+        unixsocket: /tmp/golimit.sock #unix socket file location
         
     ```
     Note: Ensure the seed node is always reachable.
@@ -68,8 +72,6 @@ later in document. Using as module takes away the pain of deployment and mainten
   
 4. Use from Http Apis
 
-    [on madwriter](http://madwriter.myntra.com/docs/golimitv3-v3)
-    
     | Param | Description|
     |:-------:|:-----------|
     |K      | Key a string, against this the counters are calculated|

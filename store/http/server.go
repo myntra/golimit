@@ -2,10 +2,10 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/myntra/golimit/store"
 	"github.com/pressly/chi"
 	log "github.com/sirupsen/logrus"
+	"net"
 	"net/http"
 	"os"
 	"runtime/pprof"
@@ -14,28 +14,33 @@ import (
 )
 
 type HttpServer struct {
-	port     int
-	hostname string
-	router   *chi.Mux
-	store    *store.Store
+	port          int
+	hostname      string
+	unixSocksFile string
+	router        *chi.Mux
+	store         *store.Store
 }
 
 func NewGoHttpServer(port int, hostname string, store *store.Store) *HttpServer {
 	server := &HttpServer{port: port, hostname: hostname, store: store}
 	server.router = chi.NewRouter()
 	server.registerHttpHandlers()
-	defaultRoundTripper := http.DefaultTransport
-	defaultTransportPointer, ok := defaultRoundTripper.(*http.Transport)
-	if !ok {
-		panic(fmt.Sprintf("defaultRoundTripper not an *http.Transport"))
-	}
-	defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
-	defaultTransport.MaxIdleConns = 1000
-	defaultTransport.MaxIdleConnsPerHost = 1000
-
-	http.DefaultClient = &http.Client{Transport: &defaultTransport}
 	go http.ListenAndServe(":"+strconv.Itoa(port), server.router)
 	log.Infof("http server started on port %d", port)
+	return server
+}
+
+func NewGoHttpServerOnUnixSocket(sockFile string, store *store.Store) *HttpServer {
+	server := &HttpServer{unixSocksFile: sockFile, store: store}
+	server.router = chi.NewRouter()
+	server.registerHttpHandlers()
+	listener, err := net.Listen("unix", sockFile)
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+	go http.Serve(listener, server.router)
+	log.Infof("http server started on socket %s", sockFile)
 	return server
 }
 

@@ -35,7 +35,7 @@ var once, once2 sync.Once
 func GetMgrInstance() EventManager {
 	once.Do(func() {
 		instance = &goLimitEventManager{workerCount: 1000, handlers: make(map[string][]EventHandler),
-			eventChan: make(chan (Event), 100000)}
+			eventChan: make(chan (Event), 10000000)}
 		instance.objPools = make(map[string]*sync.Pool)
 		instance.poolLock = sync.RWMutex{}
 		instance.startEventWorkers()

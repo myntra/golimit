@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/myntra/golimit/gen-go/com"
 	"github.com/myntra/golimit/store/bucket"
@@ -13,23 +14,22 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 	"io/ioutil"
 	"math"
-	"math/rand"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 )
 
-var hostname string
+var HOSTNAME string
 
 func init() {
-	hostname, _ = os.Hostname()
+	HOSTNAME, _ = os.Hostname()
 }
 
 type options struct {
 	clusterName       string
 	nodeId            string
 	tchannelport      string
+	hostAddr          string
 	seed              string
 	syncBuffer        int
 	buckets           int
@@ -48,13 +48,15 @@ type options struct {
 	tchannel          *tchannel.Channel
 	ringpop           *ringpop.Ringpop
 	clock             clock.Clock
+	configDir         string
 }
 
 var defaultOptions = options{
 	clusterName:       "golimit",
-	nodeId:            "golimit" + strconv.Itoa(rand.Int()),
+	nodeId:            "",
 	tchannelport:      "2479",
-	seed:              hostname + ":2479",
+	hostAddr:          "0.0.0.0",
+	seed:              HOSTNAME + ":2479",
 	syncBuffer:        1000000,
 	buckets:           1000,
 	statsDEnabled:     false,
@@ -72,6 +74,7 @@ var defaultOptions = options{
 	tchannel:          nil,
 	ringpop:           nil,
 	clock:             &clock.RealClock{},
+	configDir:         "",
 }
 
 type Option func(*options)
@@ -187,27 +190,30 @@ func WithSeed(seeds string) Option {
 func WithTChannelPort(port string) Option {
 	return func(o *options) {
 		o.tchannelport = port
-		o.nodeId = hostname + ":" + o.tchannelport
 	}
 }
 
-func WithHostName(hostName string) Option {
+func WithHostAddr(hostName string) Option {
 	return func(o *options) {
-		hostname = hostName
-		o.nodeId = hostname + ":" + o.tchannelport
+		o.hostAddr = hostName
 	}
 }
 
 func WithClusterName(name string) Option {
 	return func(o *options) {
 		o.clusterName = name
-		o.nodeId = hostname + ":" + o.tchannelport
 	}
 }
 
 func WithNodeId(nodeId string) Option {
 	return func(o *options) {
 		o.nodeId = nodeId
+	}
+}
+
+func WithConfigDir(configDir string) Option {
+	return func(o *options) {
+		o.configDir = configDir
 	}
 }
 
@@ -279,11 +285,22 @@ func (s *Store) Handle(e event.Event) {
 	if ok {
 		log.Debugf("Sending stats %+v", e)
 		if kevent.Allowed {
-			s.statsd.Count(s.opts.statsDBucket+".golimit."+kevent.Key+".allowed", kevent.Count)
+			s.statsd.Count(s.opts.statsDBucket+".golimit."+replaceIncompatibleChars(kevent.Key)+".allowed", kevent.Count)
 		} else {
-			s.statsd.Count(s.opts.statsDBucket+".golimit."+kevent.Key+".blocked", kevent.Count)
+			s.statsd.Count(s.opts.statsDBucket+".golimit."+replaceIncompatibleChars(kevent.Key)+".blocked", kevent.Count)
 		}
 	}
+
+}
+
+func replaceIncompatibleChars(str string) string {
+	bs := bytes.NewBufferString("")
+	for _, v := range str {
+		if v != '.' && v != ',' && v != ' ' && v != '%' && v != ':' && v != '\\' && v != '/' && v != '|' {
+			bs.WriteRune(v)
+		}
+	}
+	return bs.String()
 
 }
 
@@ -452,7 +469,7 @@ func (s *Store) StatsDClient() *statsd.Client {
 
 func (s *Store) SaveRateConfig() {
 	json, _ := json.Marshal(s.rateConfig)
-	ioutil.WriteFile("rateconfig.json", json, 0644)
+	ioutil.WriteFile(s.opts.configDir+"rateconfig.json", json, 0644)
 }
 
 func (s *Store) LoadRateConfig() {

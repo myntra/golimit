@@ -22,17 +22,17 @@ func TestStoreCluster_Ctr_Limit_test(t *testing.T) {
 	configStore2 := defaultOptions
 	configStore2.tchannelport = "2346"
 	configStore2.unsyncedTimeLimit = 1000
-	configStore2.seed = hostname + ":" + configStore1.tchannelport
+	configStore2.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore3 := defaultOptions
 	configStore3.tchannelport = "2347"
 	configStore3.unsyncedTimeLimit = 1000
-	configStore3.seed = hostname + ":" + configStore1.tchannelport
+	configStore3.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore4 := defaultOptions
 	configStore4.tchannelport = "2348"
 	configStore4.unsyncedTimeLimit = 1000
-	configStore4.seed = hostname + ":" + configStore1.tchannelport
+	configStore4.seed = HOSTNAME + ":" + configStore1.tchannelport
 	_clock := &clock.UnRealClock{}
 	store1 := NewStore(WithTChannelPort(configStore1.tchannelport),
 		WithSeed(configStore1.seed), WithClock(_clock),
@@ -87,22 +87,22 @@ func TestStoreCluster_Timeout_Limit_test(t *testing.T) {
 	configStore1 := defaultOptions
 	configStore1.tchannelport = "2355"
 	configStore1.unsyncedTimeLimit = 1000
-	configStore1.seed = hostname + ":" + configStore1.tchannelport
+	configStore1.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore2 := defaultOptions
 	configStore2.tchannelport = "2356"
 	configStore2.unsyncedTimeLimit = 1000
-	configStore2.seed = hostname + ":" + configStore1.tchannelport
+	configStore2.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore3 := defaultOptions
 	configStore3.tchannelport = "2357"
 	configStore3.unsyncedTimeLimit = 1000
-	configStore3.seed = hostname + ":" + configStore1.tchannelport
+	configStore3.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore4 := defaultOptions
 	configStore4.tchannelport = "2358"
 	configStore4.unsyncedTimeLimit = 1000
-	configStore4.seed = hostname + ":" + configStore1.tchannelport
+	configStore4.seed = HOSTNAME + ":" + configStore1.tchannelport
 	_clock := &clock.UnRealClock{}
 	store1 := NewStore(WithTChannelPort(configStore1.tchannelport),
 		WithSeed(configStore1.seed), WithClock(_clock), WithUnsyncedTimeLimit(1000),
@@ -142,22 +142,22 @@ func TestStoreCluster_Node_Join(t *testing.T) {
 	configStore1 := defaultOptions
 	configStore1.tchannelport = "2365"
 	configStore1.unsyncedTimeLimit = 1000
-	configStore1.seed = hostname + ":" + configStore1.tchannelport
+	configStore1.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore2 := defaultOptions
 	configStore2.tchannelport = "2366"
 	configStore2.unsyncedTimeLimit = 1000
-	configStore2.seed = hostname + ":" + configStore1.tchannelport
+	configStore2.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore3 := defaultOptions
 	configStore3.tchannelport = "2367"
 	configStore3.unsyncedTimeLimit = 1000
-	configStore3.seed = hostname + ":" + configStore1.tchannelport
+	configStore3.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore4 := defaultOptions
 	configStore4.tchannelport = "2368"
 	configStore4.unsyncedTimeLimit = 1000
-	configStore4.seed = hostname + ":" + configStore1.tchannelport
+	configStore4.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	_clock := &clock.UnRealClock{}
 	store1 := NewStore(WithTChannelPort(configStore1.tchannelport), WithClock(_clock),
@@ -188,12 +188,12 @@ func TestStoreCluster_GC(t *testing.T) {
 	configStore1 := defaultOptions
 	configStore1.tchannelport = "2375"
 	configStore1.unsyncedTimeLimit = 1000
-	configStore1.seed = hostname + ":" + configStore1.tchannelport
+	configStore1.seed = HOSTNAME + ":" + configStore1.tchannelport
 
 	configStore2 := defaultOptions
 	configStore2.tchannelport = "2376"
 	configStore2.unsyncedTimeLimit = 1000
-	configStore2.seed = hostname + ":" + configStore1.tchannelport
+	configStore2.seed = HOSTNAME + ":" + configStore1.tchannelport
 	_clock := &clock.UnRealClock{}
 	store1 := NewStore(WithTChannelPort(configStore1.tchannelport), WithClock(_clock),
 		WithSeed(configStore1.seed),
@@ -248,24 +248,24 @@ func TestClusterWithRingPop(t *testing.T) {
 	}
 	ringpop, err := ringpop.New("testc",
 		ringpop.Channel(tchannel),
-		ringpop.Address("localhost:7772"))
-	if err := tchannel.ListenAndServe("localhost:7772"); err != nil {
+		ringpop.Address(HOSTNAME+":7772"))
+	if err := tchannel.ListenAndServe("0.0.0.0:7772"); err != nil {
 		log.Fatalf("Cluster: could not listen on given hostport: %v", err)
 	}
 
 	opts := new(swim.BootstrapOptions)
 
-	opts.DiscoverProvider = statichosts.New("localhost:7772")
+	opts.DiscoverProvider = statichosts.New(HOSTNAME + ":7772")
 
 	if _, err := ringpop.Bootstrap(opts); err != nil {
 		log.Fatalf("Cluster: ringpop bootstrap failed: %v", err)
 	}
 
 	store := NewStore(
-		WithHostName("localhost"),
+		WithHostAddr("0.0.0.0"),
 		WithRingpop(ringpop),
 		WithTChannel(tchannel),
-		WithHostName("localhost"),
+		WithHostAddr("0.0.0.0"),
 		WithClusterName("testc"),
 		WithTChannelPort("7772"))
 

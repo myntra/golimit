@@ -26,7 +26,10 @@ func (s *Store) initRingPop() {
 
 	var err error
 	s.tchannel = s.opts.tchannel
-	s.nodeId = hostname + ":" + s.opts.tchannelport
+
+	if s.nodeId == "" {
+		s.nodeId = HOSTNAME + ":" + s.opts.tchannelport
+	}
 
 	log.Info("Cluster: Initializing RingPop")
 	if s.tchannel == nil {
@@ -46,11 +49,12 @@ func (s *Store) initRingPop() {
 	if s.ringpop == nil {
 		s.ringpop, err = ringpop.New(s.opts.clusterName,
 			ringpop.Channel(s.tchannel),
-			ringpop.Address(hostname+":"+s.opts.tchannelport))
+			ringpop.Identity(s.nodeId),
+			ringpop.Address(HOSTNAME+":"+s.opts.tchannelport))
 		if err != nil {
 			log.Fatalf("Cluster: Unable to create Ringpop: %v", err)
 		}
-		if err := s.tchannel.ListenAndServe(hostname + ":" + s.opts.tchannelport); err != nil {
+		if err := s.tchannel.ListenAndServe(s.opts.hostAddr + ":" + s.opts.tchannelport); err != nil {
 			log.Fatalf("Cluster: could not listen on given hostport: %v", err)
 		}
 
@@ -74,9 +78,9 @@ func (s *Store) initRingPop() {
 		}
 
 	} else {
-		address, _ := s.ringpop.WhoAmI()
-		if address != hostname+":"+s.opts.tchannelport {
-			panic("Invalid Config: provided Ringpop Address should match with " + hostname + ":" + s.opts.tchannelport)
+		nodeId, _ := s.ringpop.WhoAmI()
+		if nodeId != s.nodeId {
+			panic("Invalid Config: provided Ringpop Nodeid should match with " + nodeId)
 		}
 	}
 	log.Info("Cluster: Initializing RingPop - Done")

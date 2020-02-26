@@ -1,4 +1,4 @@
-module github.com/salman-bhai/golimit
+module github.com/myntra/golimit
 
 go 1.13
 
@@ -9,7 +9,6 @@ require (
 	github.com/cactus/go-statsd-client v3.1.1+incompatible // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/dgryski/go-farm v0.0.0-20180109070241-2de33835d102 // indirect
-	github.com/myntra/golimit v0.0.0-20180720143415-5f75f06f4cbf
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.9.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect

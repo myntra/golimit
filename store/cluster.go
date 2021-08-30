@@ -212,8 +212,10 @@ func (s *Store) SyncKeys(ctx thrift.Context, syncs []*com.SyncCommand) error {
 func (cs *Store) SyncRateConfig(ctx thrift.Context, key string, threshold int32, window int32, peakaveraged bool) error {
 
 	log.Infof("Cluster:Done Sync rateconfig Request Key:%s, Threshold: %d , Window: %d, peakaveraged: %t", key, threshold, window, peakaveraged)
+	cs.Lock()
 	cs.rateConfig[key] = &RateConfig{Limit: threshold, Window: window,
 		PeakAveraged: peakaveraged}
+	cs.Unlock()
 	cs.SaveRateConfig()
 	return nil
 }

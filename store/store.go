@@ -471,9 +471,9 @@ func (s *Store) StatsDClient() *statsd.Client {
 
 func (s *Store) SaveRateConfig() {
 	s.RLock()
+	defer s.RUnlock()
 	json, _ := json.Marshal(s.rateConfig)
 	ioutil.WriteFile(s.opts.configDir+"rateconfig.json", json, 0644)
-	s.RUnlock()
 }
 
 func (s *Store) LoadRateConfig() {

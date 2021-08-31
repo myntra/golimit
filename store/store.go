@@ -373,7 +373,9 @@ func (s *Store) startSyncWorker() {
 	}()
 }
 func (s *Store) SetRateConfig(key string, rateConfig RateConfig) {
+	s.Lock()
 	s.rateConfig[key] = &rateConfig
+	s.Unlock()
 	s.SaveRateConfig()
 	s.sendSyncRateConfigToNodes(key, &rateConfig)
 }
@@ -468,6 +470,8 @@ func (s *Store) StatsDClient() *statsd.Client {
 }
 
 func (s *Store) SaveRateConfig() {
+	s.RLock()
+	defer s.RUnlock()
 	json, _ := json.Marshal(s.rateConfig)
 	ioutil.WriteFile(s.opts.configDir+"rateconfig.json", json, 0644)
 }

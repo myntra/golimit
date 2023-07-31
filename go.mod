@@ -3,7 +3,7 @@ module github.com/myntra/golimit
 go 1.13
 
 require (
-	github.com/apache/thrift v0.0.0-20161221203622-b2a4d4ae21c7
+	github.com/apache/thrift v0.13.0
 	github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3 // indirect
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cactus/go-statsd-client v3.1.1+incompatible // indirect

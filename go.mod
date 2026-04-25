@@ -31,3 +31,9 @@ require (
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/yaml.v2 v2.2.4
 )
+
+// codahale/hdrhistogram was transferred to the HdrHistogram organisation in
+// 2020. Both module paths still resolve, but `go get`-based tooling now
+// emits a deprecation notice for the old path. Redirect transitive references
+// to the maintained location.
+replace github.com/codahale/hdrhistogram => github.com/HdrHistogram/hdrhistogram-go v0.9.0
